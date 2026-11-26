@@ -4,13 +4,7 @@ const live = el('live');
 const message = text => { el('filmStatus').textContent = text; };
 
 function frame(video) {
-  const scale = Math.min(1, Number(el('resolution').value) / Math.max(video.videoWidth, video.videoHeight));
-  const canvas = document.createElement('canvas');
-  canvas.width = Math.round(video.videoWidth * scale);
-  canvas.height = Math.round(video.videoHeight * scale);
-  const context = canvas.getContext('2d');
-  context.drawImage(video, 0, 0, canvas.width, canvas.height);
-  return context.getImageData(0, 0, canvas.width, canvas.height);
+  return captureRegion(video,video.videoWidth,video.videoHeight);
 }
 
 function tick() {
@@ -34,6 +28,8 @@ function closeCamera() {
   camera = null;
   live.srcObject = null;
   live.hidden = true;
+  el('reticle').hidden=true;
+  el('field').disabled=false;
   el('openCamera').disabled = false;
   el('closeCamera').disabled = el('film').disabled = el('finish').disabled = true;
   el('facing').disabled = el('clip').disabled = false;
@@ -49,6 +45,8 @@ el('openCamera').onclick = async () => {
     live.srcObject = camera;
     live.hidden = false;
     await live.play();
+    await focusCentre(camera.getVideoTracks()[0]);
+    el('reticle').hidden=false;
     el('film').disabled = el('closeCamera').disabled = false;
     const actual = camera.getVideoTracks()[0].getSettings().facingMode;
     if (actual && actual !== el('facing').value) {
@@ -65,6 +63,7 @@ el('openCamera').onclick = async () => {
 el('film').onclick = () => {
   if (!live.videoWidth) { message('Wacht op het eerste camerabeeld.'); return; }
   firstFrame = frame(live);
+  el('field').disabled=true;
   el('facing').disabled = el('film').disabled = el('clip').disabled = true;
   el('finish').disabled = false;
   try {
@@ -101,6 +100,7 @@ el('clip').onchange = async event => {
   const file = event.target.files[0];
   if (!file) return;
   closeCamera();
+  el('field').disabled=true;
   const video = document.createElement('video'), url = URL.createObjectURL(file);
   video.muted = video.playsInline = true;
   video.preload = 'auto';
@@ -118,6 +118,7 @@ el('clip').onchange = async event => {
     el('build').click();
   } catch (e) { filmPair = null; message(e.message); }
   finally {
+    el('field').disabled=false;
     URL.revokeObjectURL(url);
     video.removeAttribute('src');
     video.load();
@@ -130,3 +131,5 @@ for (const id of ['left','right']) el(id).addEventListener('change',()=>{
 });
 
 el('facing').onchange = () => { if (camera) { closeCamera(); el('openCamera').click(); } };
+
+el('field').onchange=()=>{live.style.transform='scale('+Number(el('field').value)+')';filmPair=null;message('Werkgebied gewijzigd. Maak een nieuwe filmscan of kies de film opnieuw.');el('clip').value='';};
