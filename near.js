@@ -30,6 +30,7 @@ else {
    ui('start').disabled=false;say('Start om de dieptemeting te controleren.');
  }catch{say(unavailable)}})();
  ui('start').onclick=async()=>{
+   closeOrdinary();
    ui('start').disabled=true;
    try{
      session=await navigator.xr.requestSession('immersive-ar',{
