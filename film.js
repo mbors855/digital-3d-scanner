@@ -4,7 +4,7 @@ const live = el('live');
 const message = text => { el('filmStatus').textContent = text; };
 
 function frame(video) {
-  const scale = Math.min(1, 400 / Math.max(video.videoWidth, video.videoHeight));
+  const scale = Math.min(1, Number(el('resolution').value) / Math.max(video.videoWidth, video.videoHeight));
   const canvas = document.createElement('canvas');
   canvas.width = Math.round(video.videoWidth * scale);
   canvas.height = Math.round(video.videoHeight * scale);
