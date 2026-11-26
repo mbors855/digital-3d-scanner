@@ -22,6 +22,7 @@ function tick() {
 }
 
 function closeCamera() {
+  stopPreview();
   clearInterval(pulseTimer);
   firstFrame = null;
   camera?.getTracks().forEach(track => track.stop());
@@ -63,6 +64,7 @@ el('openCamera').onclick = async () => {
 el('film').onclick = () => {
   if (!live.videoWidth) { message('Wacht op het eerste camerabeeld.'); return; }
   firstFrame = frame(live);
+  startPreview();
   el('field').disabled=true;
   el('facing').disabled = el('film').disabled = el('clip').disabled = true;
   el('finish').disabled = false;
